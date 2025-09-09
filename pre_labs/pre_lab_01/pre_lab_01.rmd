@@ -37,7 +37,7 @@ The library function loads an R library such as the tidyverse, providing access 
 
 ### Task 1: The console
 
-**Task** In the console (look below), type 2+2 and hit enter. What does it return? Type your answer below. **Answer:**
+**Task** In the console (look below), type 2+2 and hit enter. What does it return? Type your answer below. **Answer:** [1] 4
 
 ### Task 2: Variables
 
@@ -55,7 +55,7 @@ number * number
 
 What does it return? Type your answer below:
 
-**Answer:**
+**Answer:** [1] 4
 
 ### Task 3: Install packages
 
@@ -95,7 +95,7 @@ umd_courses <- read_rds("umd_courses.rds")
 
 Once it loads, look at the environment window at right in RStudio for umd_courses It's next to a small blue circle with a white arrow in it. To the right of that, look at how many "obs" the dataset has ("obs" is short for observation, which is another way of saying rows or records). Look at how many variables it has (another way of saying columns or fields). Write the number of observations and variables below.
 
-**Answer**
+**Answer** 79366 observations, 9 variables
 
 ### Task 6: Glimpse data
 
@@ -105,7 +105,7 @@ Once it loads, look at the environment window at right in RStudio for umd_course
 glimpse(umd_courses)
 ```
 
-In the space below, write the data type for the "id" column and the "seats" column (it's in light gray, offset by \< \>). **Answer**
+In the space below, write the data type for the "id" column and the "seats" column (it's in light gray, offset by \< \>). **Answer** The "id" column is a character vector (chr), which is qualitative, while the "seats" column is a double vector, which is quantitative.
 
 ### Task 7: Examine data "head"
 
@@ -115,7 +115,7 @@ In the space below, write the data type for the "id" column and the "seats" colu
 head(umd_courses)
 ```
 
-In the space below, write the name of the business from the first row of the "name" column. **Answer**
+In the space below, write the name of the business from the first row of the "name" column. **Answer** SKIPPED AS INSTRUCTED
 
 ### Task 8: Explore data with interactive dataframe
 
@@ -139,7 +139,7 @@ umd_courses |>
 
 Describe what you think each line of this code is doing below, based on the result:
 
-**Answer**
+**Answer** It's listing the different class terms at UMD--Fall, Winter, Spring, Summer--for each year starting in 2017, and how many classes were offered during each. 
 
 ### Task 10: Adding arrange to sort the data
 
@@ -154,7 +154,7 @@ umd_courses |>
   arrange(desc(count_classes))
 ```
 
-Compared to the previous codeblock, what has changed and how did that affect the result? **Answer**
+Compared to the previous codeblock, what has changed and how did that affect the result? **Answer** This codeblock reordered the results from the previous codeblock and sorted them from most class offerings to least class offerings. We learn that Fall 2024 had the most class offerings since data collection began. 
 
 ### Task 11: Grouping by multiple columns
 
@@ -171,7 +171,7 @@ umd_courses |>
 
 Compared to the previous codeblock, how did the output change and what in the code changed it?
 
-**Answer**
+**Answer** This list, over 4,000 rows long, shows how many classes were offered in each major in each semester since the beginning of 2017. It splits up the data from the previous codeblocks into a longer, more detailed dataset. 
 
 ### Task 12: Other summary functions
 
@@ -187,7 +187,7 @@ umd_courses |>
   arrange(desc(total_seats))
 ```
 
-Compared to the previous codeblock, what has changed and how did that affect the result? **Answer**
+Compared to the previous codeblock, what has changed and how did that affect the result? **Answer** This is the same as the second codeblock from Task 10, with an additional row added. The new row shows how many total seats were available in a given semester. The data is sorted greatest to least from the new column.
 
 ### Task 13: different kinds of summarizations
 
@@ -205,7 +205,7 @@ umd_courses |>
   arrange(desc(total_seats))
 ```
 
-Compared to the previous codeblock, what has changed and how did that affect the result? What do the top terms have in common? **Answer**
+Compared to the previous codeblock, what has changed and how did that affect the result? What do the top terms have in common? **Answer** The new codeblock adds two columns to the previous codeblock, showing the mean and median number of seats in for each semester since the start of 2017.
 
 ### Task 14: more aggregations
 
@@ -227,16 +227,16 @@ umd_courses |>
 
 Compared to the previous codeblock, what has changed and how did that affect the result? How is the data sorted?
 
-**Answer**
+**Answer** The data is now sorted by major, from the majors with the most total seats to the major with the least total seats. We can now see that most majors share a minimum number of seats at 0, but range wildly in their largest seat numbers.This codeblock also eliminates any sorting by data or semester, which differs from previous sorting methods. 
 
-### Task 12: Questions
+### Task 15: Questions
 
 No code here; I want you to provide three questions that this data suggests to you. What would you like to ask it?
 
 **Answer**
 
-1.  
+1.  Which majors have seen the largest reductions in class offerings since 2017?
 
-2.  
+2.  Did the COVID-19 pandemic affect the number of courses offered in a semester, or the number of seats in those courses?
 
-3.  
+3.  Which major has the largest mean number of seats in their classes, and has that changed since 2017?
