@@ -51,7 +51,7 @@ md_grant_loans
 
 ### Task 4: Group and count to identify problems in Grantee column
 
-**Task** Run the following code to group and count records in the Grantee column, and filter to examine only recipients that start with W. Name a problem that you see that is preventing proper grouping. **Answer**
+**Task** Run the following code to group and count records in the Grantee column, and filter to examine only recipients that start with W. Name a problem that you see that is preventing proper grouping. **Answer** Many of the names have multiple slight variations of themselves, which is creating an obstacle to proper grouping. For example, Worksource Montgomery is listed as both "Workforce Montgomery" and "Workforce Montgomery, Inc.", so they're counted seperately, even though our intention is to count them together.
 
 ```{r}
 # Now let's try and group and count the number of expenditures by recipient. To make it a bit more manageable, let's use another string function from `stringr` and filter for recipients that start with the uppercase "W" or lowercase "w" using the function `str_detect()` with a regular expression.  
@@ -69,7 +69,7 @@ md_grant_loans |>
 
 ### Task 5: Use refinr to clean the grantee_clean field.
 
-**Task** Run the following code to make a copy of the Grantee field called grantee_clean, then use the `key_collision_merge` function from refinr to attempt to standardize similar values. Store it as a new object called cleaned_md_grant_loans Click the black arrow on the table to examine the Grantee and grantee_clean columns. Looking at the results on the first 3 pages only (first 30 rows), name two changes the refinr package made, by comparing Grantee to grantee_clean. **Answer**
+**Task** Run the following code to make a copy of the Grantee field called grantee_clean, then use the `key_collision_merge` function from refinr to attempt to standardize similar values. Store it as a new object called cleaned_md_grant_loans Click the black arrow on the table to examine the Grantee and grantee_clean columns. Looking at the results on the first 3 pages only (first 30 rows), name two changes the refinr package made, by comparing Grantee to grantee_clean. **Answer** The Washington County Museum of the Fine Arts was capitalized, and FAIR HILL FARM, INC. has its punctuation removed.
 
 ```{r}
 cleaned_md_grant_loans <- md_grant_loans |>
@@ -82,7 +82,7 @@ cleaned_md_grant_loans
 
 ### Task 6: Filter cleaned_md_grant_loans to examine recipients that start with W
 
-**Task** Run the following code to group by grantee_clean and Grantee, then filter for recipients that start with W. Name three changes the refinr function made in the first 30 results. **Answer**
+**Task** Run the following code to group by grantee_clean and Grantee, then filter for recipients that start with W. Name three changes the refinr function made in the first 30 results. **Answer** The "WALTER P CARTER CHILD CARE CENTER", which originally had a secondary version with an "INC." on the end, was cleaned and streamlined into the simplified name. "WASHINGTON ADVENTIST UNIVERSITY" was changed into lowercase, with only capitalized first letters, and the same was done to Washington College.
 
 ```{r}
 cleaned_md_grant_loans |>
@@ -96,7 +96,7 @@ cleaned_md_grant_loans |>
 
 ### Task 7: Use a different refinr method to clean the city_clean field.
 
-**Task** Run the following code to use the n_gram_merge() function to clean the data, then group by grantee_clean and Grantee to examine recipients that start with W. Look at the differences. Does the changes it made vary substantially from the previous use of key_collision_merge? **Answer**
+**Task** Run the following code to use the n_gram_merge() function to clean the data, then group by grantee_clean and Grantee to examine recipients that start with W. Look at the differences. Does the changes it made vary substantially from the previous use of key_collision_merge? **Answer** No, the count column retains the same totals from the previous task, which relied on the first key_collision_merge.
 
 ```{r}
 cleaned_md_grant_loans <- md_grant_loans |>
