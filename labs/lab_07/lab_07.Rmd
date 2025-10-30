@@ -123,4 +123,9 @@ moco_od_acs |>
 **A5**
 
 ```{r}
+moco_od_acs <- moco_od_acs|>
+  mutate(min = population-moe) |>
+  mutate(min_per_capita = (count/min)*1000) |>
+  mutate(max = population+moe) |>
+  mutate(max_per_capita = (count/max)*1000)
 ```
