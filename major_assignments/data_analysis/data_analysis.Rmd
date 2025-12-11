@@ -1,0 +1,195 @@
+---
+title: "MD 2024 General Precinct Results"
+output: html_notebook
+Names: Ellie Jornlin, Jordan Fine, Adam Hudacek
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+Turn in, via GitHub, an updated draft data notebook (.RMD) that :
+Loads and cleans the core data set to prepare for analysis. 
+
+Shows basic exploratory analysis to demonstrate an understanding of the dataset, including the number of rows and columns, any obvious limitations or flaws and any reasons why it might not be able to answer the questions you've posed last week.
+
+1. Some limitations to the data include, it only covers 2024. This may make it harder to compare different years, we will need to find more data. Also, this data is only showing precinct level data this could make it hard to answer questions that involve different districts, or jurisdictions, or zip codes. Lastly, questions about different voter demographics may be hard to answer, they are not included in the data. 
+
+Task: Load libraries (we will probably want to load more libraries later to answer different questions)
+```{r}
+#load libraries 
+library(tidyverse)
+library(janitor)
+library(dplyr)
+library(lubridate) #could be helpful because we are working with dates
+```
+
+```{r}
+#load data
+md_precinct <- read_csv("MD 2024 General Precinct Results - md_election_results.csv") |> #clean names 
+   clean_names()
+```
+
+```{r}
+#check out different column and row numbers 
+nrow(md_precinct) #there are 82772 rows 
+ncol(md_precinct) #there are 14 columns 
+```
+
+Question 1: How did county vote totals change between the Presidential and Senatorial election in Maryland, and did one party have a more significant change in number of votes cast than the other?
+Answer: 
+
+Most Maryland counties had slightly lower number of votes cast for the Senate race than for the Presidential race. The counties that did have higher Senate votes cast are Anne Arundel, Baltimore City, Howard County, Montgomery County, Talbot County and Prince George's County, but every other county had a lower number of Senate race votes cast. The county that had the biggest drop with 555 fewer voters in the Senate race, resulting in 5.5% lower number of votes cast. 
+
+Democratic number of votes decreased significantly from the Presidential to the Senatorial race, a 13.4% decline from their Presidential vote total. Alternatively, Reupublican number of votes cast increased in the Senatorial race, represented by a 24.8% increase. Libertarian votes grew from 15,258 to 67,818 which is a 344% increase. This drastic change is likely the result of having a candidate on the ballot or a specific reason that doesn't reflect a real ideological shift.  
+
+```{r}
+pres <- md_precinct |>
+  filter(contest == "President and Vice President of the United States") |>
+  group_by(jurisdiction, party) |>
+  summarize(pres_votes = sum(total_votes), .groups = "drop")
+
+sen <- md_precinct |>
+  filter(contest == "U.S. Senator") |>
+  group_by(jurisdiction, party) |>
+  summarize(sen_votes = sum(total_votes), .groups = "drop")
+```
+
+```{r}
+combined <- pres |>
+  full_join(sen, by = c("jurisdiction", "party")) |>
+  replace_na(list(pres_votes = 0, sen_votes = 0)) |>
+  mutate(raw_change = sen_votes - pres_votes)
+```
+
+```{r}
+statewide_change <- combined |>
+  group_by(party) |>
+  summarize(
+    pres_total = sum(pres_votes),
+    sen_total = sum(sen_votes),
+    raw_change = sen_total - pres_total,
+    pct_change = (sen_total - pres_total) / pres_total * 100
+  )
+```
+
+```{r}
+county_engagement <- md_precinct |>
+  filter(contest %in% c("President and Vice President of the United States",
+                        "U.S. Senator")) |>
+  group_by(jurisdiction, contest) |>
+  summarize(total_votes = sum(total_votes), .groups = "drop") |>
+  pivot_wider(
+    names_from = contest,
+    values_from = total_votes
+  ) |>
+  mutate(
+    raw_change = `U.S. Senator` - `President and Vice President of the United States`,
+    pct_change = raw_change / `President and Vice President of the United States` * 100
+  )
+```
+
+Question 2: In which precincts did Harris and Alsobrooks have the best margins? In which precincts did they collect the most votes?
+
+Answer: 
+The precinct where Harris-Walz had the best margin is 1505 (015-005) Prince George's County in which they recieved 5,400 votes with the margin being 5,078. The precinct where Alsobrooks had the best margin is 1505 (015-005) with 5,273 votes and a margin of 4,747. The precinct where Harris-Walz had the most overall votes is 1505 (015-005) with 5,400. Finally, the precinct where Alsobrooks had the most overall votes is 1505 (015-005) with 5,273 votes. We chose to demonstrate our results with numbers rather than percentages because it better expresses specific changes in the data with specific numbers. 
+```{r}
+agg_votes <- md_precinct |>
+  group_by(contest, precinct_id, precinct_name, candidate) |>
+  summarise(total_votes = sum(total_votes), .groups = "drop")
+```
+
+```{r}
+harris_margin <- md_precinct |>
+  filter(contest == "President and Vice President of the United States") |>
+  pivot_wider(
+    names_from = candidate,
+    values_from = total_votes,
+    values_fill = 0,
+    id_cols = c(jurisdiction, precinct_id, precinct_name)
+  ) |>
+  mutate(
+    margin = `Harris-Walz` - pmax(
+      `Trump-Vance`,
+      `Oliver-ter Maat`,
+      `Stein-Ware`,
+      `Kennedy, Jr.-Shanahan`,
+      `WRITE-IN`
+    )
+  )
+
+harris_best_margin <- harris_margin |>
+  slice_max(margin, n = 1)
+```
+
+```{r}
+alsobrooks_margin <- md_precinct |>
+  filter(contest == "U.S. Senator") |>
+  pivot_wider(
+    names_from = candidate,
+    values_from = total_votes,
+    values_fill = 0,
+    id_cols = c(jurisdiction, precinct_id, precinct_name)
+  ) |>
+  mutate(
+    margin = `Angela Alsobrooks` - pmax(
+      `Larry Hogan`,
+      `Mike Scott`,
+      `WRITE-IN`
+    )
+  )
+
+alsobrooks_best_margin <- alsobrooks_margin |>
+  slice_max(margin, n = 1)
+```
+
+```{r}
+most_harris_votes <- md_precinct |>
+  filter(candidate == "Harris-Walz") |>
+  slice_max(total_votes, n = 1)
+
+most_alsobrooks_votes <- md_precinct |>
+  filter(candidate == "Angela Alsobrooks") |>
+  slice_max(total_votes, n = 1)
+```
+
+```{r}
+print(harris_best_margin)
+print(alsobrooks_best_margin)
+print(most_harris_votes)
+print(most_alsobrooks_votes)
+```
+
+Question 3: Which Maryland county had the largest difference in vote turnout between the Senatorial and Presidential elections? Did more counties have higher turnout in the Senatorial election or the Presidential election? What demographic differences exist within those results?
+
+Answer: Overall, more counties had a higher presidential turnout than senatorial turnout, with 7 counties casting more votes in the Senate election and 17 counties casting more votes for president. Interestingly, the states six largest counties--Montgomery, Baltimore, Prince George's, Anne Arundel, Baltimore City and Howard--all saw higher turnout in the Senate election. Somerset County had the largest turnout difference between the election: 70.5 percent of registered voters there turned out to vote for president, but only 66.6 percent cast their votes in the Senate rate, a nearly 4-point gap. Garrett, Allegheny, Cecil and Washington counties were the other counties with turnout gaps above 1-point. All five counties are rural, either on the Eastern Shore or the Western Panhandle and typically vote Republican. 
+
+```{r}
+md_pres_counties <- md_precinct |>
+  rename(county = jurisdiction) |>
+  filter(contest == "President and Vice President of the United States") |>
+  group_by(county) |>
+  summarise(total_pres_votes = sum(total_votes, na.rm = TRUE), registered_voters = (sum(registered_voters, na.rm = TRUE)/6)) |>
+  arrange(desc(total_pres_votes)) |>
+  mutate(pres_vote_rate = (total_pres_votes/registered_voters)*100)
+
+md_sen_counties <- md_precinct |>
+  rename(county = jurisdiction) |>
+  filter(contest == "U.S. Senator") |>
+  group_by(county) |>
+  summarise(total_sen_votes = sum(total_votes, na.rm = TRUE), registered_voters = (sum(registered_voters, na.rm = TRUE)/4)) |>
+  arrange(desc(total_sen_votes)) |>
+  mutate(sen_vote_rate = (total_sen_votes/registered_voters)*100)
+
+md_vote_rate <- left_join(md_pres_counties, md_sen_counties, by = "county")
+
+md_vote_rate <- md_vote_rate |>
+  mutate(rate_change = (sen_vote_rate-pres_vote_rate)) |>
+  arrange(desc(rate_change))
+  
+  
+
+```
+
+
+FOR MY QUESTION: Add up vote totals by county via ballots_cast column. Link MD County census data from a previous lab. Then divide the county by its population. Explain that percetages allow us to compare counties with vastly different populations. Then, look at the census data for MD counties and see if any demographic data stands out for those counties with vastly different turnout rates, if any exist.

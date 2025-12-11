@@ -61,23 +61,24 @@ When you finish scraping into a dataframe, write code to find the press releases
 
 ```{r}
 
-url <- "https://www.opd.state.md.us/press-releases"
+police_url <- "https://www.opd.state.md.us/press-releases" 
 
-page <- read_html(url)
-links <- page |>
+page <- read_html(police_url) 
+links <- page |> 
   html_elements("a") 
-texts <- links |>
-  html_text2()
-entries <- texts[str_detect(texts, "^\\d{1,2}/\\d{1,2}/\\d{4}:")]
+texts <- links |> 
+  html_text2() 
+entries <- texts[str_detect(texts, "^\\d{1,2}/\\d{1,2}/\\d{4}:")] 
 
-opd_data <- tibble(raw = entries) |>
-  separate(raw, into = c("date", "title"), sep = ": ", extra = "merge") %>%
-  mutate(date = mdy(date), title = str_squish(title))
+opd_data <- tibble(raw = entries) |> 
+  separate(raw, into = c("date", "title"), sep = ": ", extra = "merge") |> 
+  mutate(date = mdy(date), title = str_squish(title)) 
 
-police_title_data <- opd_data %>%
-  filter(str_detect(title, regex("police", ignore_case = TRUE)))
+police_title_data <- opd_data|>
+  filter(str_detect(title, regex("police", ignore_case = TRUE))) 
 
 police_title_data
+
 
 ```
 
@@ -91,9 +92,39 @@ When you're done, rename the columns so they make sense, then make sure the date
 
 Finally, tell me what questions you could ask of this data if you had all of his press releases. Be creative.
 
-**A3**
+**A3** I'd be interested to see what other lawmakers Van Hollen works with most frequently, as the titles of his press releases often feature the names of his Senate colleagues, especially to see if any Republican names appear in that list. I'd be interested to see how many releases name Trump, and if the president's name appears at a higher rate in his second term compared to his first. Are they any Democratic Congressional colleagues from the Maryland delegation that he never worked with? The names are what interest me most; I'd be curious to see if he had periods of frequent collaborations that later faltered, or which new alliances were possibly forged during this current Trump administration.
 
 ```{r}
+vh_url <- "https://www.vanhollen.senate.gov/news/press-releases"
+
+vh <- read_html(vh_url)
+
+vh_dates <- vh |>
+  html_elements('p.Heading--time') |>
+  html_text() |>
+  as_tibble()
+
+vh_headers <- vh |>
+  html_elements('h2.ArticleTitle') |>
+  html_text() |>
+  as_tibble()
+
+vh_webs <- vh |>
+  html_elements('a.Link') |>
+  html_attr('href') |>
+  as_tibble()
+
+vh_final <- bind_cols(vh_dates, vh_headers, vh_webs) |>
+  rename(
+    date = value...1,
+    title = value...2,
+    url = value...3
+  ) |>
+  mutate(
+    date = mdy(date)
+  )
+
+
 
 
 ```
