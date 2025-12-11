@@ -190,6 +190,3 @@ md_vote_rate <- md_vote_rate |>
   
 
 ```
-
-
-FOR MY QUESTION: Add up vote totals by county via ballots_cast column. Link MD County census data from a previous lab. Then divide the county by its population. Explain that percetages allow us to compare counties with vastly different populations. Then, look at the census data for MD counties and see if any demographic data stands out for those counties with vastly different turnout rates, if any exist.
