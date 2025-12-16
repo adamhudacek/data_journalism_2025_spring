@@ -46,11 +46,13 @@ Most Maryland counties had slightly lower number of votes cast for the Senate ra
 Democratic number of votes decreased significantly from the Presidential to the Senatorial race, a 13.4% decline from their Presidential vote total. Alternatively, Reupublican number of votes cast increased in the Senatorial race, represented by a 24.8% increase. Libertarian votes grew from 15,258 to 67,818 which is a 344% increase. This drastic change is likely the result of having a candidate on the ballot or a specific reason that doesn't reflect a real ideological shift.  
 
 ```{r}
+#total votes for the presidential race
 pres <- md_precinct |>
   filter(contest == "President and Vice President of the United States") |>
   group_by(jurisdiction, party) |>
   summarize(pres_votes = sum(total_votes), .groups = "drop")
 
+#total votes for the senatorial race
 sen <- md_precinct |>
   filter(contest == "U.S. Senator") |>
   group_by(jurisdiction, party) |>
@@ -58,6 +60,7 @@ sen <- md_precinct |>
 ```
 
 ```{r}
+#combine vote total dataframes
 combined <- pres |>
   full_join(sen, by = c("jurisdiction", "party")) |>
   replace_na(list(pres_votes = 0, sen_votes = 0)) |>
@@ -65,6 +68,7 @@ combined <- pres |>
 ```
 
 ```{r}
+#calculate vote total changes from new dataframe
 statewide_change <- combined |>
   group_by(party) |>
   summarize(
@@ -76,6 +80,7 @@ statewide_change <- combined |>
 ```
 
 ```{r}
+#calculate raw vote changes and pct vote changes between statewide races
 county_engagement <- md_precinct |>
   filter(contest %in% c("President and Vice President of the United States",
                         "U.S. Senator")) |>
@@ -90,6 +95,7 @@ county_engagement <- md_precinct |>
     pct_change = raw_change / `President and Vice President of the United States` * 100
   )
 
+#results
 county_engagement |>
   arrange(pct_change)
 ```
@@ -99,12 +105,14 @@ Question 2: In which precincts did Harris and Alsobrooks have the best margins? 
 Answer: 
 The precinct where Harris-Walz had the best margin is 1505 (015-005) Prince George's County in which they recieved 5,400 votes with the margin being 5,078. The precinct where Alsobrooks had the best margin is 1505 (015-005) with 5,273 votes and a margin of 4,747. The precinct where Harris-Walz had the most overall votes is 1505 (015-005) with 5,400. Finally, the precinct where Alsobrooks had the most overall votes is 1505 (015-005) with 5,273 votes. We chose to demonstrate our results with numbers rather than percentages because it better expresses specific changes in the data with specific numbers. 
 ```{r}
+#create new dataframe without broken-out precinct vote numbers, just the total
 agg_votes <- md_precinct |>
   group_by(contest, precinct_id, precinct_name, candidate) |>
   summarise(total_votes = sum(total_votes), .groups = "drop")
 ```
 
 ```{r}
+#calculate which precicts had the best Harris margin
 harris_margin <- md_precinct |>
   filter(contest == "President and Vice President of the United States") |>
   pivot_wider(
@@ -128,6 +136,7 @@ harris_best_margin <- harris_margin |>
 ```
 
 ```{r}
+#calculate which precicts had the best Alsobrooks margin
 alsobrooks_margin <- md_precinct |>
   filter(contest == "U.S. Senator") |>
   pivot_wider(
@@ -149,16 +158,19 @@ alsobrooks_best_margin <- alsobrooks_margin |>
 ```
 
 ```{r}
+#calculate precints with most raw Harris votes
 most_harris_votes <- md_precinct |>
   filter(candidate == "Harris-Walz") |>
   slice_max(total_votes, n = 1)
 
+#calculate precints with most raw Alsobrooks votes
 most_alsobrooks_votes <- md_precinct |>
   filter(candidate == "Angela Alsobrooks") |>
   slice_max(total_votes, n = 1)
 ```
 
 ```{r}
+#results
 print(harris_best_margin)
 print(alsobrooks_best_margin)
 print(most_harris_votes)
@@ -169,8 +181,8 @@ Question 3: Did certain precincts have more significant levels of mail-in ballot
 
 Answer: Looking at the dataframe, I can see that the precincts with the highest percent of mail-in ballots are concentrated in Baltimore County and Baltimore City, which were the only two counties to record mail-in percentages above 5%. These are ajoining counties, which suggests that the regional trend extended past the city line, into the county's populous suburbs.
 ```{r}
-precinct_mail <-
-  md_precinct |>
+#create column with mail-in vote percentages
+precinct_mail <- md_precinct |>
     group_by(jurisdiction, precinct_id, precinct_name) |>
     summarise(
       ballots_cast = first(ballots_cast),
@@ -180,8 +192,8 @@ precinct_mail <-
     ) |>
 arrange(desc(mail_percent))
 
-county_mail <-
-  precinct_mail |>
+#calculate mail-in rates per county
+county_mail <- precinct_mail |>
     group_by(jurisdiction) |>
     summarise(
       county_ballots = sum(ballots_cast),
@@ -191,6 +203,7 @@ county_mail <-
     ) |>
 arrange(desc(county_mail_percent))
 
+#results
 county_mail
 
 ```
@@ -199,6 +212,7 @@ Question 4: Did third-party candidates win any precincts within Maryland, and if
 
 Answer: No third party candidates achieved victory in any Maryland county within the 2024 presidential or senatorial contests. Our analysis returned a result of 0. 
 ```{r}
+#filter for statewide races, search dataframe for non-Dem/Rep victors
 third_party_wins <- md_precinct |>
   filter(contest %in% c(
     "President and Vice President of the United States",
@@ -210,6 +224,7 @@ third_party_wins <- md_precinct |>
   ungroup() |>
   filter(!party %in% c("DEM", "REP"))
 
+#results
 third_party_wins |> 
   summarise(total_precincts = n())
 ```
@@ -220,6 +235,7 @@ Question 5: Which Maryland county had the largest difference in vote turnout bet
 Answer: Overall, more counties had a higher presidential turnout than senatorial turnout, with 7 counties casting more votes in the Senate election and 17 counties casting more votes for president. Interestingly, the states six largest counties--Montgomery, Baltimore, Prince George's, Anne Arundel, Baltimore City and Howard--all saw higher turnout in the Senate election. Somerset County had the largest turnout difference between the election: 70.5 percent of registered voters there turned out to vote for president, but only 66.6 percent cast their votes in the Senate rate, a nearly 4-point gap. Garrett, Allegheny, Cecil and Washington counties were the other counties with turnout gaps above 1-point. All five counties are rural, either on the Eastern Shore or the Western Panhandle and typically vote Republican. 
 
 ```{r}
+#filter out duplicate precinct results for the presidential race, create vote rate column
 md_pres_counties <- md_precinct |>
   rename(county = jurisdiction) |>
   filter(contest == "President and Vice President of the United States") |>
@@ -228,6 +244,7 @@ md_pres_counties <- md_precinct |>
   arrange(desc(total_pres_votes)) |>
   mutate(pres_vote_rate = (total_pres_votes/registered_voters)*100)
 
+#filter out duplicate precinct results for the senatorial race, create vote rate column
 md_sen_counties <- md_precinct |>
   rename(county = jurisdiction) |>
   filter(contest == "U.S. Senator") |>
@@ -236,12 +253,15 @@ md_sen_counties <- md_precinct |>
   arrange(desc(total_sen_votes)) |>
   mutate(sen_vote_rate = (total_sen_votes/registered_voters)*100)
 
+#combine senatorial and presidential dataframes
 md_vote_rate <- left_join(md_pres_counties, md_sen_counties, by = "county")
 
+#create vote rate change column
 md_vote_rate <- md_vote_rate |>
   mutate(rate_change = (sen_vote_rate-pres_vote_rate)) |>
   arrange(desc(rate_change))
-  
+
+#results
 md_vote_rate
 
 ```
