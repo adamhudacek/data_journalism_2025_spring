@@ -36,10 +36,12 @@ nrow(md_precinct) #there are 82772 rows
 ncol(md_precinct) #there are 14 columns 
 ```
 
+Dataframe Analysis: The md_precinct dataframe provides Maryland vote data on the precinct level for all 2024 statewide contests, broken down by contest, specified in the column of the same name, precinct and candidate. So, for every candidate from every race has a unique row assigned to their vote totals in each precinct within the state. Further information is provided, such as which county the precinct is located in, what political party the candidate is a member of, and how many registered voters the precinct has, compared to the number of ballots submitted within the location. The vote totals are listed in bulk, but also by type of vote--election day, mail-in, early voting, etc--which will allow us to complete a granular analysis of last year's national and state elections. 
+
 Question 1: How did county vote totals change between the Presidential and Senatorial election in Maryland, and did one party have a more significant change in number of votes cast than the other?
 Answer: 
 
-Most Maryland counties had slightly lower number of votes cast for the Senate race than for the Presidential race. The counties that did have higher Senate votes cast are Anne Arundel, Baltimore City, Howard County, Montgomery County, Talbot County and Prince George's County, but every other county had a lower number of Senate race votes cast. The county that had the biggest drop with 555 fewer voters in the Senate race, resulting in 5.5% lower number of votes cast. 
+Most Maryland counties had slightly lower number of votes cast for the Senate race than for the Presidential race. The counties that did have higher Senate votes cast are Anne Arundel, Baltimore City, Howard County, Montgomery County, Talbot County and Prince George's County, but every other county had a lower number of Senate race votes cast. The county that had the biggest drop with 555 fewer voters in the Senate race was Somerset County, resulting in 5.5% lower number of votes cast. 
 
 Democratic number of votes decreased significantly from the Presidential to the Senatorial race, a 13.4% decline from their Presidential vote total. Alternatively, Reupublican number of votes cast increased in the Senatorial race, represented by a 24.8% increase. Libertarian votes grew from 15,258 to 67,818 which is a 344% increase. This drastic change is likely the result of having a candidate on the ballot or a specific reason that doesn't reflect a real ideological shift.  
 
@@ -87,6 +89,9 @@ county_engagement <- md_precinct |>
     raw_change = `U.S. Senator` - `President and Vice President of the United States`,
     pct_change = raw_change / `President and Vice President of the United States` * 100
   )
+
+county_engagement |>
+  arrange(pct_change)
 ```
 
 Question 2: In which precincts did Harris and Alsobrooks have the best margins? In which precincts did they collect the most votes?
@@ -162,11 +167,8 @@ print(most_alsobrooks_votes)
 
 Question 3: Did certain precincts have more significant levels of mail-in ballots than others? Are they concentrated within certain counties?
 
-Answer: Looking at the data frame, I can see that the precincts with the highest percent of mail in ballots are mostly concentrated  in Baltimore County and Baltimore City. The top percents range from 10-11%. After, I created a table to look at the top jurisdictions and found that this was true, jurisctions and precinct IDs measured up. 
+Answer: Looking at the dataframe, I can see that the precincts with the highest percent of mail-in ballots are concentrated in Baltimore County and Baltimore City, which were the only two counties to record mail-in percentages above 5%. These are ajoining counties, which suggests that the regional trend extended past the city line, into the county's populous suburbs.
 ```{r}
-library(dplyr)
-
-# precinct-level summary
 precinct_mail <-
   md_precinct |>
     group_by(jurisdiction, precinct_id, precinct_name) |>
@@ -189,23 +191,27 @@ county_mail <-
     ) |>
 arrange(desc(county_mail_percent))
 
+county_mail
+
 ```
 
 Question 4: Did third-party candidates win any precincts within Maryland, and if so, where are those precincts located? Are they urban or rural?
 
-Answer: I see that no third-party candidates won any precincts in Maryland, the dataframe returned empty. 
+Answer: No third party candidates achieved victory in any Maryland county within the 2024 presidential or senatorial contests. Our analysis returned a result of 0. 
 ```{r}
-third_party_wins <-
-  md_precinct |>
-    filter(contest %in% c(
-      "President and Vice President of the United States",
-      "U.S. Senator"
-    )) |>
-    group_by(jurisdiction, precinct_id, precinct_name) |>
-    slice_max(order_by = total_votes, n = 1, with_ties = FALSE) |>
-    ungroup() |>
-    filter(!party %in% c("DEM", "REP"))
+third_party_wins <- md_precinct |>
+  filter(contest %in% c(
+    "President and Vice President of the United States",
+    "U.S. Senator"
+  )) |>
+  arrange(desc(total_votes)) |>
+  group_by(jurisdiction, precinct_id, precinct_name) |>
+  slice_head(n = 1) |>
+  ungroup() |>
+  filter(!party %in% c("DEM", "REP"))
 
+third_party_wins |> 
+  summarise(total_precincts = n())
 ```
 
 
@@ -236,7 +242,7 @@ md_vote_rate <- md_vote_rate |>
   mutate(rate_change = (sen_vote_rate-pres_vote_rate)) |>
   arrange(desc(rate_change))
   
-  
+md_vote_rate
 
 ```
 
